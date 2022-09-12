@@ -2,5 +2,3 @@ matplotlib
 pandas
 numpy
 locale
-os
-PIL
