@@ -34,6 +34,9 @@ def f(d):
 def reais(f):
     return locale.currency(f, grouping=True, symbol=True)
 
+def til(s):
+    return s.replace('Ò', 'ã')
+
 # Título e descrição
 
 st.sidebar.image(image_bandeira, use_column_width=True, caption='Bandeira do Mato Grosso do Sul')
@@ -50,8 +53,9 @@ st.write('Mato Grosso do Sul é uma das 27 unidades federativas do Brasil. Local
 st.image(imagem_campo_grande, use_column_width=True, caption='Vista da cidade de Campo Grande, cidade mais bonita do Brasil')
 
 st.header('MS vs Centro Oeste vs Brasil')
-st.write('Vamos analisar os dados do estado do Mato Grosso do Sul ante a região Centro-Oeste e o Brasil. Os dados analisados serão: Produto Interno Bruto, População, Pecuária e Agricultura.')
+st.write('Vamos analisar os dados do estado do Mato Grosso do Sul ante a região Centro-Oeste e o Brasil. Os dados analisados serão: Produto Interno Bruto, População, Pecuária e Produção Agrícola.')
 st.caption('Todos os dados analisados aconteceram entre os anos 2000 e 2009, sendo analisados apenas os dados do ano vigente na legenda e não de todo o período.')
+st.caption('As análises de estados individuais não consideram o Distrito Federal.')
 
 tab_pib, tab_pop, tab_pec, tab_agro = st.tabs(['PIB', 'População', 'Pecuária', 'Produção Agrícola'])
 
@@ -140,6 +144,32 @@ ax.legend(['Mato Grosso do Sul', 'Brasil'])
 
 # Fim dos cálculos de PIB
 
+# Início dos cálculos de PIB per capita
+
+pib_per_capita_municipios = list()
+municipios = list()
+ppc_cg = 0
+ppc_max = 0
+
+for idx, val in enumerate(tabela_pib['Código IBGE da unidade da federação']):
+    if val == 'MS' :
+        pib_per_capita_municipios.append(tabela_pib.iloc[idx]['PIB per capita'])
+        municipios.append(tabela_pib.iloc[idx]['Nome do município'])
+    
+    if tabela_pib.iloc[idx]['Nome do município'] == 'Campo Grande':
+        ppc_cg = tabela_pib.iloc[idx]['PIB per capita']
+
+ppc_max = max(pib_per_capita_municipios)
+idx_ppc_max = pib_per_capita_municipios.index(ppc_max)
+
+ppc_min = min(pib_per_capita_municipios)
+idx_ppc_min = pib_per_capita_municipios.index(ppc_min)
+
+figPPCMS, ax = plt.subplots()
+ax.hist(pib_per_capita_municipios, 5, rwidth=0.9)
+
+# Fim dos cálculos de PIB per capita
+
 # Início dos cálculos de população
 
 pop_ms = 0;
@@ -182,15 +212,32 @@ bovinos_ms = 0
 bovinos_co = 0
 bovinos_brasil = 0
 
+bovinos_mt = 0
+bovinos_go = 0
+
 for idx, val in enumerate(tabela_pec['Código IBGE da unidade da federação']):
     bovinos_brasil += tabela_pec.iloc[idx]['Bovinos - efetivo dos rebanhos']
 
     if val == 'MS' :
         bovinos_ms += tabela_pec.iloc[idx]['Bovinos - efetivo dos rebanhos']
+    if val == 'MT' :
+        bovinos_mt += tabela_pec.iloc[idx]['Bovinos - efetivo dos rebanhos']
+    if val == 'GO' :
+        bovinos_go += tabela_pec.iloc[idx]['Bovinos - efetivo dos rebanhos']
+
     if tabela_pec.iloc[idx]['Grandes regiões'] == 'Centro-Oeste':
         bovinos_co += tabela_pec.iloc[idx]['Bovinos - efetivo dos rebanhos']
 
 # Gráficos de pecuária
+
+x = [bovinos_ms, bovinos_mt, bovinos_go];
+colors = plt.get_cmap('Greens')(np.linspace(0.2, 0.7, len(x)))
+
+figPecMSMTGO, ax = plt.subplots()
+ax.pie(x, colors=colors, radius=3, center=(4, 4),
+       wedgeprops={"linewidth": 3, "edgecolor": "white"}, frame=False)
+
+ax.legend(['Mato Grosso do Sul', 'Mato Grosso', 'Goiás'])
 
 x = [bovinos_ms, bovinos_co];
 colors = plt.get_cmap('Greens')(np.linspace(0.2, 0.7, len(x)))
@@ -218,6 +265,11 @@ soja_ms = 0
 soja_co = 0
 soja_brasil = 0
 
+soja_mt = 0
+soja_go = 0
+milho_mt = 0
+milho_go = 0
+
 milho_ms = 0
 milho_co = 0
 milho_brasil = 0
@@ -229,6 +281,12 @@ for idx, val in enumerate(tabela_agro['Código IBGE da unidade da federação'])
     if val == 'MS':
         soja_ms += tabela_agro.iloc[idx]['Soja (em grão) - Quantidade produzida']
         milho_ms += tabela_agro.iloc[idx]['Milho (em grão) - Quantidade produzida']
+    if val == 'MT':
+        soja_mt += tabela_agro.iloc[idx]['Soja (em grão) - Quantidade produzida']
+        milho_mt += tabela_agro.iloc[idx]['Milho (em grão) - Quantidade produzida']
+    if val == 'GO':
+        soja_go += tabela_agro.iloc[idx]['Soja (em grão) - Quantidade produzida']
+        milho_go += tabela_agro.iloc[idx]['Milho (em grão) - Quantidade produzida']
 
     if tabela_agro.iloc[idx]['Grandes regiões'] == 'Centro-Oeste':
         soja_co += tabela_agro.iloc[idx]['Soja (em grão) - Quantidade produzida']
@@ -236,6 +294,15 @@ for idx, val in enumerate(tabela_agro['Código IBGE da unidade da federação'])
 
 # Gráficos de produção agrícola
 # Soja
+
+x = [soja_ms, soja_mt, soja_go];
+colors = plt.get_cmap('Purples')(np.linspace(0.2, 0.7, len(x)))
+
+figSojaMSMTGO, ax = plt.subplots()
+ax.pie(x, colors=colors, radius=3, center=(4, 4),
+       wedgeprops={"linewidth": 3, "edgecolor": "white"}, frame=False)
+
+ax.legend(['Mato Grosso do Sul', 'Mato Grosso', 'Goiás'])
 
 x = [soja_ms, soja_co];
 colors = plt.get_cmap('Purples')(np.linspace(0.2, 0.7, len(x)))
@@ -256,6 +323,15 @@ ax.pie(x, colors=colors, radius=3, center=(4, 4),
 ax.legend(['Mato Grosso do Sul', 'Brasil'])
 
 # Milho
+
+x = [milho_ms, milho_mt, milho_go];
+colors = plt.get_cmap('summer')(np.linspace(0.2, 0.7, len(x)))
+
+figMilhoMSMTGO, ax = plt.subplots()
+ax.pie(x, colors=colors, radius=3, center=(4, 4),
+       wedgeprops={"linewidth": 3, "edgecolor": "white"}, frame=False)
+
+ax.legend(['Mato Grosso do Sul', 'Mato Grosso', 'Goiás'])
 
 x = [milho_ms, milho_co];
 colors = plt.get_cmap('summer')(np.linspace(0.2, 0.7, len(x)))
@@ -321,6 +397,16 @@ with tab_pib:
         st.write('PIB Brasil: ', pib_brasil)
         st.write('Representa ', str(pib_ms_brasil_perc), '% do PIB do Brasil')
 
+    pib_col1, pib_col2 = st.columns([3, 1])
+
+    with pib_col1:
+        st.subheader('PIB per capita - Municípios do MS')
+        st.pyplot(figPPCMS)
+        st.write('PIB per capita Campo Grande: ', reais(ppc_cg))
+        st.write('PIB per máximo: ', reais(ppc_max), ' - município de ', til(municipios[idx_ppc_max]))
+        st.write('PIB per mínimo: ', reais(ppc_min), ' - município de ', til(municipios[idx_ppc_min]))
+
+
 with tab_pop:
     st.header('População - Censo de 2000 (IBGE)')
     st.write('Segundo o Censo de 2000 do IBGE, a população brasileira era de aproximadamente 169 milhões de habitantes. Nessa mesma contagem, a população do estado do Mato Grosso do Sul era de aproximadamente 2 milhões de habitantes, enquanto a da região Centro-Oeste era de 11,5 milhões de pessoas. As análises podem ser observadas nos gráficos abaixo.')
@@ -367,6 +453,16 @@ with tab_pec:
         st.write('Total de bovinos Brasil: ', f(bovinos_brasil))
         st.write('Representa ', str(pec_ms_brasil_perc), '% dos bovinos do Brasil')
 
+    pec_col1, pec_spc, pec_col2 = st.columns([3, 1, 3])
+
+    with pec_col1:
+        st.subheader('MS vs MT vs GO')
+        st.pyplot(figPecMSMTGO)
+        st.write('Total de bovinos MS: ', f(bovinos_ms))
+        st.write('Total de bovinos MT: ', f(bovinos_mt))
+        st.write('Total de bovinos GO: ', f(bovinos_go))
+
+
 with tab_agro:
     st.header('Produção agrícola 2007')
     st.write('Os gráficos abaixo representam as produções agrículas de soja e milho do estado do Mato Grosso do Sul, da região Centro-Oeste e do Brasil. Foram escolhidas as produções de soja e milho pois são as duas principais modalidades agrícolas do país, seguido pela cana de açucar, que tem mais expressividade no estado de São Paulo e por isso ficou de fora das análises.')
@@ -393,6 +489,16 @@ with tab_agro:
         st.write('Produção de soja no Brasil: ', f(soja_brasil), 'toneladas')
         st.write('Representa ', str(soja_ms_brasil_perc), '% da produção de soja no Brasil')
 
+    agro_col1, agro_spc, agro_col2 = st.columns([3, 1, 3])
+    
+    with agro_col1:
+        st.subheader('MS vs MT vs GO')
+        st.pyplot(figSojaMSMTGO);
+        st.write('Produção de soja no MS: ', f(soja_ms), 'toneladas')
+        st.write('Produção de soja no MT: ', f(soja_mt), 'toneladas')
+        st.write('Produção de soja no GO: ', f(soja_go), 'toneladas')
+
+
     st.subheader('Produção de milho')
     agro_col1, agro_spc, agro_col2 = st.columns([3, 1, 3])
 
@@ -412,3 +518,12 @@ with tab_agro:
         st.write('Produção de milho no MS: ', f(milho_ms), ' toneladas')
         st.write('Produção de milho no Brasil: ', f(milho_brasil), ' toneladas')
         st.write('Representa ', str(milho_ms_brasil_perc), '% da produção de milho no Brasil')
+
+    agro_col1, agro_spc, agro_col2 = st.columns([3, 1, 3])
+    
+    with agro_col1:
+        st.subheader('MS vs MT vs GO')
+        st.pyplot(figMilhoMSMTGO);
+        st.write('Produção de milho no MS: ', f(milho_ms), 'toneladas')
+        st.write('Produção de milho no MT: ', f(milho_mt), 'toneladas')
+        st.write('Produção de milho no GO: ', f(milho_go), 'toneladas')
