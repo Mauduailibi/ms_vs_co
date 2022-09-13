@@ -1,6 +1,7 @@
 import streamlit as st
 import pandas as pd
 import matplotlib.pyplot as plt
+import plotly.express as px
 import numpy as np
 import locale
 import os
@@ -356,18 +357,26 @@ ax.legend(['Mato Grosso do Sul', 'Brasil'])
 
 # Início dos cálculos de homicídios
 
+homicidios_2009 = list()
+homicidios_2008 = list()
+
 homicidios_municipios = list()
 
 for idx, val in enumerate(tabela_homicidios['Grandes_regi_es']):
 
     if val == 'MS':
-        homicidios_municipios.append(tabela_pib.iloc[idx]['homicidios2009'])
-    
+        homicidios_2009.append(tabela_pib.iloc[idx]['homicidios2009'])
+        homicidios_2008.append(tabela_pib.iloc[idx]['homicidios2008'])
 
-figHomicidiosMS = plt.figure(figsize =(10, 7))
-plt.boxplot(homicidios_municipios)
+for idx, val in enumerate(municipios):
+        homicidios_municipios[idx][0].append(municipios)
+        homicidios_municipios[idx][1].append(homicidios_2009)
+        homicidios_municipios[idx][2].append(homicidios_2008)
 
-st.pyplot(figHomicidiosMS)
+st.write(homicidios_municipios)
+
+# figHomicidiosMS
+# st.pyplot(figHomicidiosMS)
 
 # Fim dos cálculos de homicídios
 
