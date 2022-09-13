@@ -27,6 +27,7 @@ tabela_pib = pd.read_excel('./assets/xls/tabela.xlsx', 'Produto Interno Bruto 20
 tabela_pop = pd.read_excel('./assets/xls/tabela.xlsx', 'População Domicílios Censo 2000')
 tabela_pec = pd.read_excel('./assets/xls/tabela.xlsx', 'Pecuária 2008')
 tabela_agro = pd.read_excel('./assets/xls/tabela.xlsx', 'Produção Agrícola 2007')
+tabela_homicidios = pd.read_excel('./assets/xls/tabela.xlsx', 'SIM-obitos e homicidios')
 
 def f(d):
     return '{0:n}'.format(d)
@@ -353,6 +354,23 @@ ax.legend(['Mato Grosso do Sul', 'Brasil'])
 
 # Fim dos cálculos da produção agrícola
 
+# Início dos cálculos de homicídios
+
+homicidios_municipios = list()
+
+for idx, val in enumerate(tabela_homicidios['Grandes_regi_es']):
+
+    if val == 'MS':
+        homicidios_municipios.append(tabela_pib.iloc[idx]['homicidios2009'])
+    
+
+figHomicidiosMS = plt.figure(figsize =(10, 7))
+plt.boxplot(homicidios_municipios)
+
+st.pyplot(figHomicidiosMS)
+
+# Fim dos cálculos de homicídios
+
 # Início das tabs
 
 with tab_pib:
@@ -477,7 +495,7 @@ with tab_agro:
     
     with agro_col1:
         st.subheader('MS vs Centro Oeste')
-        st.pyplot(figSojaMSBR)
+        st.pyplot(figSojaMSCO)
         st.write('Produção de soja no MS: ', f(soja_ms), 'toneladas')
         st.write('Produção de soja no Centro-Oeste: ', f(soja_co), 'toneladas')
         st.write('Representa ', str(soja_ms_co_perc), '% da produção de soja no Centro-Oeste')
@@ -507,7 +525,7 @@ with tab_agro:
 
     with agro_col1:
         st.subheader('MS vs Centro Oeste')
-        st.pyplot(figMilhoMSBR)
+        st.pyplot(figMilhoMSCO)
         st.write('Produção de milho no MS: ', f(milho_ms), ' toneladas')
         st.write('Produção de milho no Centro-Oeste: ', f(milho_co), ' toneladas')
         st.write('Representa ', str(milho_ms_co_perc), '% da produção de milho no Centro-Oeste')
