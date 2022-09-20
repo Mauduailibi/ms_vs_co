@@ -10,13 +10,6 @@ from PIL import Image
 locale.setlocale( locale.LC_ALL, 'pt_BR.UTF-8' )
 dirname = os.path.dirname(__file__)
 
-# file1 = os.path.join(dirname, 'assets\\img\\bandeira_ms.png')
-# file2 = os.path.join(dirname, 'assets\\img\\ms_no_mapa.png')
-# file3 = os.path.join(dirname, 'assets\\img\\bonito.jpg')
-# file4 = os.path.join(dirname, 'assets\\img\\campo_grande.jpg')
-# file5 = os.path.join(dirname, 'assets\\img\\corumba.jpg')
-# file6 = os.path.join(dirname, 'assets\\img\\boiada.jpg')
-
 image_bandeira = Image.open('./assets/img/bandeira_ms.png')
 image_mapa = Image.open('./assets/img/ms_no_mapa.png')
 image_bonito = Image.open('./assets/img/bonito.jpg')
@@ -59,7 +52,7 @@ st.write('Vamos analisar os dados do estado do Mato Grosso do Sul ante a região
 st.caption('Todos os dados analisados aconteceram entre os anos 2000 e 2009, sendo analisados apenas os dados do ano vigente na legenda e não de todo o período.')
 st.caption('As análises de estados individuais não consideram o Distrito Federal.')
 
-tab_pib, tab_pop, tab_pec, tab_agro = st.tabs(['PIB', 'População', 'Pecuária', 'Produção Agrícola'])
+tab_pib, tab_pop, tab_hom, tab_pec, tab_agro = st.tabs(['PIB', 'População', 'Homicídios', 'Pecuária', 'Produção Agrícola'])
 
 # Fim da descrição
 
@@ -185,8 +178,6 @@ for idx, val in enumerate(tabela_pop['Código IBGE da unidade da federação']):
         pop_ms += tabela_pop.iloc[idx]['Pessoas residentes - resultados da amostra - municípios vigentes em 2001']
     if tabela_pop.iloc[idx]['Grandes regiões'] == 'Centro-Oeste':
         pop_co += tabela_pop.iloc[idx]['Pessoas residentes - resultados da amostra - municípios vigentes em 2001']
-
-# Gráficos de população
 
 x = [pop_ms, pop_co];
 colors = plt.get_cmap('Reds')(np.linspace(0.2, 0.7, len(x)))
@@ -359,24 +350,26 @@ ax.legend(['Mato Grosso do Sul', 'Brasil'])
 
 homicidios_2009 = list()
 homicidios_2008 = list()
+homicidios_2007 = list()
+municipios_homicidios = list()
 
-homicidios_municipios = list()
-
-for idx, val in enumerate(tabela_homicidios['Grandes_regi_es']):
+for idx, val in enumerate(tabela_homicidios['C_digo_IBGE_da_unidade_da_federa']):
 
     if val == 'MS':
-        homicidios_2009.append(tabela_pib.iloc[idx]['homicidios2009'])
-        homicidios_2008.append(tabela_pib.iloc[idx]['homicidios2008'])
+        mun_pop = tabela_homicidios.iloc[idx]['Pessoas_residentes___resultados_']
+        homicidios_totais_2009 = tabela_homicidios.iloc[idx]['homicidios2009']
+        homicidios_totais_2008 = tabela_homicidios.iloc[idx]['homicidios2008']
+        homicidios_totais_2007 = tabela_homicidios.iloc[idx]['homicidios2007']
 
-for idx, val in enumerate(municipios):
-        homicidios_municipios[idx][0].append(municipios)
-        homicidios_municipios[idx][1].append(homicidios_2009)
-        homicidios_municipios[idx][2].append(homicidios_2008)
+        homicidios_2009.append(round(homicidios_totais_2009 / mun_pop * 100000, 1))
+        homicidios_2008.append(round(homicidios_totais_2008 / mun_pop * 100000, 1))
+        homicidios_2007.append(round(homicidios_totais_2007 / mun_pop * 100000, 1))
+        municipios_homicidios.append(tabela_homicidios.iloc[idx]['Nome_do_munic_pio'])
 
-st.write(homicidios_municipios)
+homicidios_municipios = np.array([homicidios_2009, homicidios_2008, homicidios_2007])
+homicidios_municipios_title = np.array([municipios_homicidios, homicidios_2009, homicidios_2008, homicidios_2007])
 
-# figHomicidiosMS
-# st.pyplot(figHomicidiosMS)
+figHomicidiosMS = px.box(homicidios_municipios.transpose())
 
 # Fim dos cálculos de homicídios
 
@@ -456,6 +449,12 @@ with tab_pop:
         st.write('População MS: ', f(pop_ms))
         st.write('População Brasil: ', f(pop_brasil))
         st.write('Representa ', str(pop_ms_brasil_perc), '% da população do Brasil')
+
+with tab_hom:
+    st.header('Homicídios - 2009, 2008, 2007')
+    st.write('Os homicídios são crimes que resultam em morte de uma pessoa por outra. A análise dos homicídios no estado do Mato Grosso do Sul por município pode ser observada nos gráficos abaixo. Lembrando que os dados estão classificados em taxa por 100 mil habitantes.')
+
+    st.plotly_chart(figHomicidiosMS)
 
 with tab_pec:
     st.header('Pecuária 2008 - Total de bovinos')
